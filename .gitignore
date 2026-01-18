@@ -1,0 +1,16 @@
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.dist/
+build/
+dist/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+*.log
+*.json
+*.txt
+!.github/
+!examples/targets.txt

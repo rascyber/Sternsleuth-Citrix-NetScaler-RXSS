@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cve-2025-12101-scanner"
+version = "1.0.0"
+description = "Scanner for CVE-2025-12101 Citrix NetScaler RXSS reflection check"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Stern e' Man" }]
+keywords = ["security", "scanner", "citrix", "netscaler", "cve", "xss"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Environment :: Console",
+  "Topic :: Security",
+]
+
+dependencies = []
+
+[project.scripts]
+cve-2025-12101 = "cve_2025_12101_scanner.cli:main"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+select = ["E", "F", "I", "UP", "B"]
+ignore = []
+
+[tool.ruff.format]
+quote-style = "double"
